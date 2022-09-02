@@ -20,6 +20,6 @@ type BusOperatorProfile struct {
 	Ratings          int8            `json:"ratings"`
 	ApprovalStatus   APPROVAL_STATUS `json:"approval_status"`
 	RejectionComment string          `json:"rejection_comment"`
-	BusinessLogoId   int             `json:"business_logo_id"`
+	BusinessLogoId   uint            `json:"business_logo_id"`
 	BusinessLogo     Media           `json:"business_logo"`
 }

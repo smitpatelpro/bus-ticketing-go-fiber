@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bus-api/config"
 	"bus-api/database"
 	"bus-api/router"
 	"bus-api/utils"
@@ -12,14 +13,15 @@ import (
 )
 
 func main() {
-	config := fiber.Config{
+	fiber_config := fiber.Config{
 		JSONEncoder: json.Marshal,
 		JSONDecoder: json.Unmarshal,
 	}
-	app := fiber.New(config)
+	app := fiber.New(fiber_config)
 	app.Use(cors.New())
 
-	app.Static("/static", "./static")
+	app.Static("/static", config.Config("STATIC_ROOT"))
+	app.Static("/media", config.Config("MEDIA_ROOT"))
 	utils.CreateMediaDirectories()
 
 	database.ConnectDB()

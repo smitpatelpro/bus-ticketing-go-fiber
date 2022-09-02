@@ -5,6 +5,7 @@ import (
 	"bus-api/handler"
 	"bus-api/model"
 	"bus-api/utils"
+	"fmt"
 	"math/rand"
 	"net/mail"
 	"time"
@@ -97,21 +98,34 @@ func SetProfileBusOperatorProfileLogo(c *fiber.Ctx) error {
 	if user.Role != model.ROLE_ADMIN {
 		return c.Status(401).JSON(fiber.Map{"status": "error", "message": "unauthorized", "data": nil})
 	}
-
+	file_path := ""
 	if form, err := c.MultipartForm(); err == nil {
 		files := form.File["file"]
 
 		rand.Seed(time.Now().UnixNano())
 		for _, file := range files {
-			e := utils.SaveStaticFile(c, file, "operator_logos")
+			path, e := utils.SaveStaticFile(c, file, "operator_logos")
 			if e != nil {
 				return c.Status(401).JSON(fiber.Map{"status": "error", "message": e, "data": nil})
 			}
+			file_path = path
 		}
+	} else {
+		return c.Status(401).JSON(fiber.Map{"status": "error", "message": "no file supplied", "data": nil})
 	}
 
 	db := database.DB
+	media := model.Media{Path: file_path}
+
+	db.Create(&media) // pass pointer of data to Create
+
+	fmt.Println(media)
+
 	var profile model.BusOperatorProfile
-	db.Model(&model.BusOperatorProfile{}).Preload("BusinessLogo").Where("user_id = ?", id).Find(&profile)
+	// profile.BusinessLogo = media
+	// profile.BusinessLogoId = media.ID
+	// db.Save(&profile)
+	db.Model(&profile).Where("user_id = ?", id).Update("business_logo_id", media.ID)
+	// db.Model(&model.BusOperatorProfile{}).Preload("BusinessLogo").Where("user_id = ?", id).Find(&profile)
 	return c.JSON(fiber.Map{"status": "success", "message": "All Operators", "data": profile.BusinessLogo})
 }
