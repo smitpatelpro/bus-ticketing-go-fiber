@@ -122,10 +122,20 @@ func SetProfileBusOperatorProfileLogo(c *fiber.Ctx) error {
 	fmt.Println(media)
 
 	var profile model.BusOperatorProfile
-	// profile.BusinessLogo = media
-	// profile.BusinessLogoId = media.ID
-	// db.Save(&profile)
 	db.Model(&profile).Where("user_id = ?", id).Update("business_logo_id", media.ID)
-	// db.Model(&model.BusOperatorProfile{}).Preload("BusinessLogo").Where("user_id = ?", id).Find(&profile)
 	return c.JSON(fiber.Map{"status": "success", "message": "All Operators", "data": profile.BusinessLogo})
+}
+
+// Get Logo of BusOperator
+func RemoveProfileBusOperatorProfileLogo(c *fiber.Ctx) error {
+	id := handler.GetRequestUserID(c)
+	user, _ := handler.FetchUserById(id)
+	if user.Role != model.ROLE_ADMIN {
+		return c.Status(401).JSON(fiber.Map{"status": "error", "message": "unauthorized", "data": nil})
+	}
+
+	db := database.DB
+	var profile model.BusOperatorProfile
+	db.Model(&profile).Where("user_id = ?", id).Update("business_logo_id", nil)
+	return c.JSON(fiber.Map{"status": "success", "message": "Logo deleted", "data": nil})
 }

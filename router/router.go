@@ -42,5 +42,6 @@ func SetupRoutes(app *fiber.App) {
 	opertor.Get("/profile", middleware.Protected(), operator_handler.GetCurrentBusOperatorProfile)
 	opertor.Get("/profile/logo", middleware.Protected(), operator_handler.GetProfileBusOperatorProfileLogo)
 	opertor.Patch("/profile/logo", middleware.Protected(), operator_handler.SetProfileBusOperatorProfileLogo)
+	opertor.Delete("/profile/logo", middleware.Protected(), operator_handler.RemoveProfileBusOperatorProfileLogo)
 
 }
