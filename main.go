@@ -3,6 +3,7 @@ package main
 import (
 	"bus-api/database"
 	"bus-api/router"
+	"bus-api/utils"
 	"log"
 
 	"github.com/goccy/go-json"
@@ -19,6 +20,7 @@ func main() {
 	app.Use(cors.New())
 
 	app.Static("/static", "./static")
+	utils.CreateMediaDirectories()
 
 	database.ConnectDB()
 

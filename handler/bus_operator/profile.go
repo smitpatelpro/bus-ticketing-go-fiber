@@ -2,24 +2,21 @@ package handler
 
 import (
 	"bus-api/database"
+	"bus-api/handler"
 	"bus-api/model"
-	"fmt"
+	"bus-api/utils"
+	"math/rand"
 	"net/mail"
+	"time"
 
-	// "bus-api/handler/bus_operator"
 	"github.com/gofiber/fiber/v2"
-	"github.com/golang-jwt/jwt/v4"
 )
 
 // GetAllProducts query all BusOperatorProfile
 func GetAllBusOperatorProfile(c *fiber.Ctx) error {
-	// user := c.Locals("user").(*jwt.Token)
-	// fmt.Println(user)
-	// claims := user.Claims.(jwt.MapClaims)
-	// fmt.Println(claims)
-	// id := claims["user_id"]
-	// fmt.Println(id)
-	// fmt.Printf("t1: %T\n", id)
+	if handler.GetUserRoleFromCtx(c) != model.ROLE_BUS_OPERATOR {
+		return c.Status(401).JSON(fiber.Map{"status": "error", "message": "unauthorized", "data": nil})
+	}
 
 	db := database.DB
 	var profiles []model.BusOperatorProfile
@@ -29,13 +26,11 @@ func GetAllBusOperatorProfile(c *fiber.Ctx) error {
 
 // GetAllProducts query all BusOperatorProfile
 func GetCurrentBusOperatorProfile(c *fiber.Ctx) error {
-	user := c.Locals("user").(*jwt.Token)
-	fmt.Println(user)
-	claims := user.Claims.(jwt.MapClaims)
-	fmt.Println(claims)
-	id := claims["user_id"]
-	fmt.Println(id)
-	fmt.Printf("t1: %T\n", id)
+	id := handler.GetRequestUserID(c)
+	user, _ := handler.FetchUserById(id)
+	if user.Role != model.ROLE_ADMIN {
+		return c.Status(401).JSON(fiber.Map{"status": "error", "message": "unauthorized", "data": nil})
+	}
 
 	db := database.DB
 	var profile model.BusOperatorProfile
@@ -45,6 +40,10 @@ func GetCurrentBusOperatorProfile(c *fiber.Ctx) error {
 
 // Create new BusOperatorProfile
 func CreateBusOperatorProfile(c *fiber.Ctx) error {
+	if handler.GetUserRoleFromCtx(c) != model.ROLE_BUS_OPERATOR {
+		return c.Status(401).JSON(fiber.Map{"status": "error", "message": "unauthorized", "data": nil})
+	}
+
 	db := database.DB
 	user := new(model.User)
 	if err := c.BodyParser(user); err != nil {
@@ -75,4 +74,44 @@ func CreateBusOperatorProfile(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(fiber.Map{"status": "success", "message": "Created BusOperatorProfile", "data": profile})
+}
+
+// Get Logo of BusOperator
+func GetProfileBusOperatorProfileLogo(c *fiber.Ctx) error {
+	id := handler.GetRequestUserID(c)
+	user, _ := handler.FetchUserById(id)
+	if user.Role != model.ROLE_ADMIN {
+		return c.Status(401).JSON(fiber.Map{"status": "error", "message": "unauthorized", "data": nil})
+	}
+
+	db := database.DB
+	var profile model.BusOperatorProfile
+	db.Model(&model.BusOperatorProfile{}).Preload("BusinessLogo").Where("user_id = ?", id).Find(&profile)
+	return c.JSON(fiber.Map{"status": "success", "message": "All Operators", "data": profile.BusinessLogo})
+}
+
+// Get Logo of BusOperator
+func SetProfileBusOperatorProfileLogo(c *fiber.Ctx) error {
+	id := handler.GetRequestUserID(c)
+	user, _ := handler.FetchUserById(id)
+	if user.Role != model.ROLE_ADMIN {
+		return c.Status(401).JSON(fiber.Map{"status": "error", "message": "unauthorized", "data": nil})
+	}
+
+	if form, err := c.MultipartForm(); err == nil {
+		files := form.File["file"]
+
+		rand.Seed(time.Now().UnixNano())
+		for _, file := range files {
+			e := utils.SaveStaticFile(c, file, "operator_logos")
+			if e != nil {
+				return c.Status(401).JSON(fiber.Map{"status": "error", "message": e, "data": nil})
+			}
+		}
+	}
+
+	db := database.DB
+	var profile model.BusOperatorProfile
+	db.Model(&model.BusOperatorProfile{}).Preload("BusinessLogo").Where("user_id = ?", id).Find(&profile)
+	return c.JSON(fiber.Map{"status": "success", "message": "All Operators", "data": profile.BusinessLogo})
 }

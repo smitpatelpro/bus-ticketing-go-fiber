@@ -30,6 +30,7 @@ func SetupRoutes(app *fiber.App) {
 	// Product
 	product := api.Group("/product")
 	product.Get("/", middleware.Protected(), handler.GetAllProducts)
+	// product.Get("/", middleware.Protected(), middleware.RoleMiddleware(middleware.IsAdmin, middleware.IsCustomer), handler.GetAllProducts)
 	product.Get("/:id", middleware.Protected(), handler.GetProduct)
 	product.Post("/", middleware.Protected(), handler.CreateProduct)
 	product.Delete("/:id", middleware.Protected(), handler.DeleteProduct)
@@ -39,5 +40,7 @@ func SetupRoutes(app *fiber.App) {
 	opertor.Get("/", middleware.Protected(), operator_handler.GetAllBusOperatorProfile)
 	opertor.Post("/", middleware.Protected(), operator_handler.CreateBusOperatorProfile)
 	opertor.Get("/profile", middleware.Protected(), operator_handler.GetCurrentBusOperatorProfile)
+	opertor.Get("/profile/logo", middleware.Protected(), operator_handler.GetProfileBusOperatorProfileLogo)
+	opertor.Patch("/profile/logo", middleware.Protected(), operator_handler.SetProfileBusOperatorProfileLogo)
 
 }

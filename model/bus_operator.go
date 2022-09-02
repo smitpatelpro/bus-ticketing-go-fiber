@@ -21,5 +21,5 @@ type BusOperatorProfile struct {
 	ApprovalStatus   APPROVAL_STATUS `json:"approval_status"`
 	RejectionComment string          `json:"rejection_comment"`
 	BusinessLogoId   int             `json:"business_logo_id"`
-	// BusinessLogo     Media           `json:"business_logo"`
+	BusinessLogo     Media           `json:"business_logo"`
 }
