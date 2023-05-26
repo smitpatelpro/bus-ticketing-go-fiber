@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"bus-api/database"
 	"bus-api/model"
 	"strconv"
@@ -59,31 +60,38 @@ func GetUser(c *fiber.Ctx) error {
 
 // CreateUser new user
 func CreateUser(c *fiber.Ctx) error {
-	type NewUser struct {
+	type NewUserRequest struct {
 		Username string `json:"username"`
 		Email    string `json:"email"`
+		Password    string `json:"password"`
 		Role     model.Role
 	}
 
 	db := database.DB
-	user := new(model.User)
-	if err := c.BodyParser(user); err != nil {
+	userData := new(NewUserRequest)
+	if err := c.BodyParser(userData); err != nil {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Review your input", "data": err})
-
+		
 	}
-	user.Role = model.ROLE_CUSTOMER
-	hash, err := hashPassword(user.Password)
+	
+	hash, err := hashPassword(userData.Password)
+	fmt.Println("hash=", hash, " - pass:", userData.Password)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Couldn't hash password", "data": err})
 
 	}
 
+	user := new(model.User)
+	user.Username = userData.Username
+	user.Email = userData.Email
+	user.Role = model.ROLE_CUSTOMER
 	user.Password = hash
+
 	if err := db.Create(&user).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Couldn't create user", "data": err})
 	}
-
-	newUser := NewUser{
+	
+	newUser := NewUserRequest{
 		Email:    user.Email,
 		Username: user.Username,
 	}

@@ -29,13 +29,14 @@ func (j Jwt) CreateToken(user model.User) (Token, error) {
 	var err error
 
 	claims := jwt.MapClaims{}
+	claims["username"] = user.Username
 	claims["user_id"] = uint(user.ID)
 	claims["exp"] = time.Now().Add(time.Hour * 2).Unix()
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	jwt := Token{}
 
-	jwt.AccessToken, err = token.SignedString([]byte(os.Getenv("SECRET_KEY")))
+	jwt.AccessToken, err = token.SignedString([]byte(os.Getenv("SECRET")))
 	if err != nil {
 		return jwt, err
 	}

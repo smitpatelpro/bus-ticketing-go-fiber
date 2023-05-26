@@ -3,11 +3,20 @@ package middleware
 import (
 	"bus-api/config"
 
+	// "bus-api/services"
 	"github.com/gofiber/fiber/v2"
 	jwtware "github.com/gofiber/jwt/v2"
 )
 
 // Protected protect routes
+// func Protected() fiber.Handler {
+// 	type AuthRequest struct {
+// 		AccessToken string `json:"username"`
+// 	}
+// 	jwt := services.Jwt{}
+// 	jwt.ValidateToken("")
+// }
+
 func Protected() fiber.Handler {
 	return jwtware.New(jwtware.Config{
 		SigningKey:   []byte(config.Config("SECRET")),
